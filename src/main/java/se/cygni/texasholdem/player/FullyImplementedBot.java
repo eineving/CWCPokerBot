@@ -11,6 +11,7 @@ import se.cygni.texasholdem.game.definitions.PlayState;
 import se.cygni.texasholdem.game.definitions.PokerHand;
 import se.cygni.texasholdem.game.util.PokerHandUtil;
 
+import java.io.FileNotFoundException;
 import java.util.Formatter;
 
 /**
@@ -37,6 +38,7 @@ public class FullyImplementedBot implements Player {
     private final String serverHost;
     private final int serverPort;
     private final PlayerClient playerClient;
+    private PercentageCalculator pCalculator;
 
     /**
      * Default constructor for a Java Poker Bot.
@@ -44,12 +46,14 @@ public class FullyImplementedBot implements Player {
      * @param serverHost IP or hostname to the poker server
      * @param serverPort port at which the poker server listens
      */
-    public FullyImplementedBot(String serverHost, int serverPort) {
+    public FullyImplementedBot(String serverHost, int serverPort) throws FileNotFoundException {
         this.serverHost = serverHost;
         this.serverPort = serverPort;
 
         // Initialize the player client
         playerClient = new PlayerClient(this, serverHost, serverPort);
+
+            pCalculator = new PercentageCalculator();
     }
 
     public void playATrainingGame() throws Exception {
@@ -63,10 +67,11 @@ public class FullyImplementedBot implements Player {
      * @param args
      */
     public static void main(String... args) {
-        FullyImplementedBot bot = new FullyImplementedBot("poker.cygni.se", 4711);
-
         try {
+            FullyImplementedBot bot = new FullyImplementedBot("poker.cygni.se", 4711);
+
             bot.playATrainingGame();
+
 
         } catch (Exception e) {
             e.printStackTrace();
