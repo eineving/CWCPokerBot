@@ -22,18 +22,18 @@ import java.util.Formatter;
  * it must implement the interface Player
  *
  * @see Player
- *      <p/>
- *      Javadocs for common utilities and classes used may be
- *      found here:
- *      http://poker.cygni.se/mavensite/texas-holdem-common/apidocs/index.html
- *      <p/>
- *      You can inspect the games you bot has played here:
- *      http://poker.cygni.se/showgame
+ * <p/>
+ * Javadocs for common utilities and classes used may be
+ * found here:
+ * http://poker.cygni.se/mavensite/texas-holdem-common/apidocs/index.html
+ * <p/>
+ * You can inspect the games you bot has played here:
+ * http://poker.cygni.se/showgame
  */
-public class FullyImplementedBot implements Player {
+public class PokerPlayer implements Player {
 
     private static Logger log = LoggerFactory
-            .getLogger(FullyImplementedBot.class);
+            .getLogger(PokerPlayer.class);
 
     private final String serverHost;
     private final int serverPort;
@@ -46,14 +46,13 @@ public class FullyImplementedBot implements Player {
      * @param serverHost IP or hostname to the poker server
      * @param serverPort port at which the poker server listens
      */
-    public FullyImplementedBot(String serverHost, int serverPort) throws FileNotFoundException {
+    public PokerPlayer(String serverHost, int serverPort) throws FileNotFoundException {
         this.serverHost = serverHost;
         this.serverPort = serverPort;
 
         // Initialize the player client
         playerClient = new PlayerClient(this, serverHost, serverPort);
-
-            pCalculator = new PercentageCalculator();
+        pCalculator = new PercentageCalculator();
     }
 
     public void playATrainingGame() throws Exception {
@@ -68,7 +67,7 @@ public class FullyImplementedBot implements Player {
      */
     public static void main(String... args) {
         try {
-            FullyImplementedBot bot = new FullyImplementedBot("poker.cygni.se", 4711);
+            PokerPlayer bot = new PokerPlayer("poker.cygni.se", 4711);
 
             bot.playATrainingGame();
 
@@ -97,25 +96,22 @@ public class FullyImplementedBot implements Player {
      * your bot can perform.
      *
      * @param request The list of Actions that the bot may perform.
-     *
      * @return The action the bot wants to perform.
-     *
      * @see ActionRequest
-     *      <p/>
-     *      Given the current situation you need to choose the best
-     *      action. It is not allowed to change any values in the
-     *      ActionRequest. The amount you may RAISE or CALL is already
-     *      predermined by the poker server.
-     *      <p/>
-     *      If an invalid Action is returned the server will ask two
-     *      more times. Failure to comply (i.e. returning an incorrect
-     *      or non valid Action) will result in a forced FOLD for the
-     *      current Game Round.
+     * <p/>
+     * Given the current situation you need to choose the best
+     * action. It is not allowed to change any values in the
+     * ActionRequest. The amount you may RAISE or CALL is already
+     * predermined by the poker server.
+     * <p/>
+     * If an invalid Action is returned the server will ask two
+     * more times. Failure to comply (i.e. returning an incorrect
+     * or non valid Action) will result in a forced FOLD for the
+     * current Game Round.
      * @see Action
      */
     @Override
     public Action actionRequired(ActionRequest request) {
-
         Action response = getBestAction(request);
         log.info("I'm going to {} {}",
                 response.getActionType(),
@@ -130,10 +126,46 @@ public class FullyImplementedBot implements Player {
      * to win.
      *
      * @param request
-     *
      * @return
      */
     private Action getBestAction(ActionRequest request) {
+
+
+        // The current play state is accessible through this class. It
+        // keeps track of basic events and other players.
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+
+        PossibleActions possibleActions = new PossibleActions(request.getPossibleActions());
+
+        //PreFlop
+        if (playState.getCommunityCards().isEmpty()) {
+            return preFlopAction(request, possibleActions);
+
+        } else if (playState.getCommunityCards().size() == 3) {
+            //Flop
+            //TODO Implement
+
+        } else if (playState.getCommunityCards().size() == 4) {
+            //Turn
+            //TODO Implement
+
+        } else if (playState.getCommunityCards().size() == 5) {
+            //River
+            //TODO Implement
+
+        } else {
+
+            //failsafe
+            log.debug("Not right amount of community cards");
+            return new Action(ActionType.FOLD, 0);
+        }
+
+
+
+
+
+        /* ==============================Cygni's method below =====================*/
+
         Action callAction = null;
         Action checkAction = null;
         Action raiseAction = null;
@@ -160,10 +192,6 @@ public class FullyImplementedBot implements Player {
                     break;
             }
         }
-
-        // The current play state is accessible through this class. It
-        // keeps track of basic events and other players.
-        CurrentPlayState playState = playerClient.getCurrentPlayState();
 
         // The current BigBlind
         long currentBB = playState.getBigBlind();
@@ -209,12 +237,35 @@ public class FullyImplementedBot implements Player {
         return foldAction;
     }
 
+    private Action preFlopAction(ActionRequest request, PossibleActions possibleActions) {
+        log.debug("I am now doing preFlopCalculations");
+
+        //TODO Implement
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+
+
+        if (possibleActions.canICheck()) {
+
+            //Maybe raise to see what the others will do
+            if (1 - pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) / 2 < Math.random() && possibleActions.canIRaise()) {
+                return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+            } else {
+                return new Action(ActionType.CHECK, 0);
+            }
+
+        }
+
+        //Must bring in money
+        //TODO Implement
+        return null;
+    }
+
+
     /**
      * Compares two pokerhands.
      *
      * @param myPokerHand
      * @param otherPokerHand
-     *
      * @return TRUE if myPokerHand is valued higher than otherPokerHand
      */
     private boolean isHandBetterThan(PokerHand myPokerHand, PokerHand otherPokerHand) {
@@ -234,8 +285,8 @@ public class FullyImplementedBot implements Player {
      * needed to keep track of the total picture around the table.
      *
      * @see CurrentPlayState
-     *      <p/>
-     *      ***********************************************************************
+     * <p/>
+     * ***********************************************************************
      */
 
     @Override
@@ -253,6 +304,11 @@ public class FullyImplementedBot implements Player {
     public void onYouHaveBeenDealtACard(final YouHaveBeenDealtACardEvent event) {
 
         log.debug("I, {}, got a card: {}", getName(), event.getCard());
+        if (playerClient.getCurrentPlayState().getMyCards().size() == 2) {
+            pCalculator.newCards(playerClient.getCurrentPlayState().getMyCards());
+            log.debug("I have now received two cards");
+        }
+
     }
 
     @Override
