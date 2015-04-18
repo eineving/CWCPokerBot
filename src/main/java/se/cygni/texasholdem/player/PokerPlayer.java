@@ -243,21 +243,65 @@ public class PokerPlayer implements Player {
         //TODO Implement
         CurrentPlayState playState = playerClient.getCurrentPlayState();
 
-
         if (possibleActions.canICheck()) {
-
             //Maybe raise to see what the others will do
             if (1 - pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) / 2 < Math.random() && possibleActions.canIRaise()) {
                 return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
             } else {
                 return new Action(ActionType.CHECK, 0);
             }
+        }
+        //Can only all in
+        if (!possibleActions.canICall() && possibleActions.canIGoAllIn()) {
+            if (goAllInPreFlop()) {
+                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
+            } else {
+                return fold();
+            }
+        }
+        if (possibleActions.canICall()) {
+            log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" +playState.getMyCurrentChipAmount());
+            if (playState.getNumberOfPlayers() > 2) {
 
+                //p(hand)>0,2*(bet/stack)^(1/4)
+                if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.2 *
+                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
+                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                } else {
+                    return fold();
+                }
+            } else {
+                if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.6 *
+                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(),1/8)){
+                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                } else {
+                    return fold();
+                }
+            }
         }
 
-        //Must bring in money
+        //TODO Implement raise function even if cannot check
+
+        //Failsafe
+        return fold();
+
+    }
+
+    private Action fold() {
+        return new Action(ActionType.FOLD, 0);
+    }
+
+    private boolean goAllInPreFlop() {
         //TODO Implement
-        return null;
+        //Is stack smaller than big blind?
+        /*
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+        if(playState.getBigBlind()>playState.getMyCurrentChipAmount()){
+            return pCalculator.getPreFlopPercentage(2) > .50;
+        } else {
+            return pCalculator.getPreFlopPercentage(2) > (1-playState.getBigBlind()/playState.getMyCurrentChipAmount());
+        }*/
+        return false;
     }
 
 
