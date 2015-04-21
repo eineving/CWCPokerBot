@@ -86,7 +86,7 @@ public class PokerPlayer implements Player {
      */
     @Override
     public String getName() {
-        return "Dimania";
+        return "DanielEineving";
     }
 
     /**
@@ -142,8 +142,7 @@ public class PokerPlayer implements Player {
 
         } else if (playState.getCommunityCards().size() == 3) {
             //Flop
-            //return flopAction(request, possibleActions);
-            //TODO Implement
+            return flopAction(request, possibleActions);
 
         } else if (playState.getCommunityCards().size() == 4) {
             //Turn
@@ -322,6 +321,7 @@ public class PokerPlayer implements Player {
      * @return TRUE if myPokerHand is valued higher than otherPokerHand
      */
     private boolean isHandBetterThan(PokerHand myPokerHand, PokerHand otherPokerHand) {
+        //TODO Remove
         return myPokerHand.getOrderValue() > otherPokerHand.getOrderValue();
     }
 
@@ -367,7 +367,7 @@ public class PokerPlayer implements Player {
     @Override
     public void onCommunityHasBeenDealtACard(
             final CommunityHasBeenDealtACardEvent event) {
-
+        pCalculator.newCommunityCard(event.getCard());
         log.debug("Community got a card: {}", event.getCard());
     }
 

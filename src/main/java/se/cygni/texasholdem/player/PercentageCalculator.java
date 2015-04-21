@@ -1,10 +1,12 @@
 package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.game.Card;
+import se.cygni.texasholdem.game.util.PokerHandUtil;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -15,12 +17,14 @@ public class PercentageCalculator {
 
 
     private List<Card> privateCards;
+    private List<Card> communityCards;
+    private Deck deck = new Deck();
     private String preFlopMapSearcher;
     private HashMap<String, Double> preFlopHeadsUp = new HashMap<String, Double>();
     private HashMap<String, Double> preFlopMulti = new HashMap<String, Double>();
 
     public PercentageCalculator() throws FileNotFoundException {
-
+        communityCards = new LinkedList<Card>();
         Scanner scannerHeadsUp = new Scanner(new FileReader("percentages\\preFlopHeadsUp.txt"));
         Scanner scannerMulti = new Scanner(new FileReader("percentages\\preFlopMulti.txt"));
 
@@ -37,6 +41,14 @@ public class PercentageCalculator {
 
     public void newCards(List<Card> hand) {
         this.privateCards = hand;
+        communityCards.clear();
+        deck.fillDeck();
+
+        //Removing my cards from the calculation deck
+        for(Card card: privateCards){
+            deck.removeCard(card);
+        }
+
 
         //Needs to have the biggest value first
         if (hand.get(0).getRank().getOrderValue() > hand.get(1).getRank().getOrderValue()) {
@@ -63,5 +75,38 @@ public class PercentageCalculator {
         } else {
             return preFlopHeadsUp.get(preFlopMapSearcher);
         }
+    }
+
+    public void newCommunityCard(Card card){
+        communityCards.add(card);
+        deck.removeCard(card);
+    }
+
+    public double ratioOfBetterHands(){
+        //TODO Implement
+        return 1;
+    }
+
+    private boolean betterThanMyHand(List<Card> possibleHand){
+        PokerHandUtil my = new PokerHandUtil(communityCards, privateCards);
+        PokerHandUtil opponent = new PokerHandUtil(communityCards, possibleHand);
+
+        //If the hands have the same typ and needs to be decided by value of most significant card/cards in the hand
+        if(my.getBestHand().getPokerHand().getOrderValue() == opponent.getBestHand().getPokerHand().getOrderValue()){
+
+            //TODO Refactor
+            switch (my.getBestHand().getPokerHand().getOrderValue()){
+                case 1:
+                    //High hand
+            }
+
+
+
+        } else {
+            return my.getBestHand().getPokerHand().getOrderValue() < opponent.getBestHand().getPokerHand().getOrderValue();
+        }
+
+        //Failsafe
+        return true;
     }
 }
