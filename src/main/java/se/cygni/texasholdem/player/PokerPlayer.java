@@ -86,7 +86,7 @@ public class PokerPlayer implements Player {
      */
     @Override
     public String getName() {
-        return "DanielEineving";
+        return "Dimania";
     }
 
     /**
@@ -136,13 +136,13 @@ public class PokerPlayer implements Player {
         CurrentPlayState playState = playerClient.getCurrentPlayState();
 
         PossibleActions possibleActions = new PossibleActions(request.getPossibleActions());
-
         //PreFlop
         if (playState.getCommunityCards().isEmpty()) {
             return preFlopAction(request, possibleActions);
 
         } else if (playState.getCommunityCards().size() == 3) {
             //Flop
+            //return flopAction(request, possibleActions);
             //TODO Implement
 
         } else if (playState.getCommunityCards().size() == 4) {
@@ -237,10 +237,14 @@ public class PokerPlayer implements Player {
         return foldAction;
     }
 
+    private Action flopAction(ActionRequest request, PossibleActions possibleActions) {
+        //TODO Implement
+        return null;
+    }
+
     private Action preFlopAction(ActionRequest request, PossibleActions possibleActions) {
         log.debug("I am now doing preFlopCalculations");
 
-        //TODO Implement
         CurrentPlayState playState = playerClient.getCurrentPlayState();
 
         if (possibleActions.canICheck()) {
@@ -260,28 +264,33 @@ public class PokerPlayer implements Player {
             }
         }
         if (possibleActions.canICall()) {
-            log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" +playState.getMyCurrentChipAmount());
+            log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" + playState.getMyCurrentChipAmount());
             if (playState.getNumberOfPlayers() > 2) {
 
                 //p(hand)>0,2*(bet/stack)^(1/4)
                 if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.2 *
                         Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
-                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                    if (Math.random() > 0.80 && possibleActions.canIRaise()) {
+                        return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+                    } else {
+                        return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                    }
                 } else {
                     return fold();
                 }
             } else {
                 if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.6 *
-                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(),1/8)){
-                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
+                    if (Math.random() > 0.75 && possibleActions.canIRaise()) {
+                        return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+                    } else {
+                        return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                    }
                 } else {
                     return fold();
                 }
             }
         }
-
-        //TODO Implement raise function even if cannot check
-
         //Failsafe
         return fold();
 
