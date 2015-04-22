@@ -7,9 +7,6 @@ import se.cygni.texasholdem.game.definitions.Suit;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Test on 2015-04-21.
- */
 public class Deck {
     List<Card> cards = new ArrayList<Card>();
 

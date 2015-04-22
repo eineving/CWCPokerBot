@@ -81,17 +81,16 @@ public class PercentageCalculator {
     public double ratioOfBetterHands() {
         List<List<Card>> possibleTuples = deck.getPossibleTuples();
 
-        int numberOfbetterHands=0;
+        int numberOfBetterHands=0;
         double numberOfHands = possibleTuples.size();
 
         for(List<Card> hand : possibleTuples){
             if(betterThanMyHand(hand)){
-                numberOfbetterHands++;
-                System.out.println(numberOfbetterHands + " better hand found");
+                numberOfBetterHands++;
             }
         }
 
-        return numberOfbetterHands/numberOfHands;
+        return numberOfBetterHands/numberOfHands;
     }
 
     private boolean betterThanMyHand(List<Card> possibleHand) {
@@ -100,7 +99,6 @@ public class PercentageCalculator {
 
         //If the hands have the same typ and needs to be decided by value of most significant card/cards in the hand
         if (my.getBestHand().getPokerHand().getOrderValue() == opponent.getBestHand().getPokerHand().getOrderValue()) {
-            System.out.print("Values are the same");
             //TODO Refactor
             switch (my.getBestHand().getPokerHand().getOrderValue()) {
                 case 1:

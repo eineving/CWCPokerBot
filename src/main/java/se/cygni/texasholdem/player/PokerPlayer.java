@@ -140,17 +140,18 @@ public class PokerPlayer implements Player {
         if (playState.getCommunityCards().isEmpty()) {
             return preFlopAction(request, possibleActions);
 
-        } else if (playState.getCommunityCards().size() == 3) {
+        }
+        else if (playState.getCommunityCards().size() == 3) {
             //Flop
-            return flopAction(request, possibleActions);
+            return postFlopAction(possibleActions);
 
         } else if (playState.getCommunityCards().size() == 4) {
             //Turn
-            //TODO Implement
+            return postFlopAction(possibleActions);
 
         } else if (playState.getCommunityCards().size() == 5) {
             //River
-            //TODO Implement
+            return postFlopAction(possibleActions);
 
         } else {
 
@@ -162,8 +163,7 @@ public class PokerPlayer implements Player {
 
 
 
-
-        /* ==============================Cygni's method below =====================*/
+/*
 
         Action callAction = null;
         Action checkAction = null;
@@ -234,21 +234,155 @@ public class PokerPlayer implements Player {
 
         // failsafe
         return foldAction;
+*/
     }
 
-    private Action flopAction(ActionRequest request, PossibleActions possibleActions) {
+    private Action postFlopAction(PossibleActions possibleActions){
+        log.debug("Commencing post flop calculations");
+        double ratioOfBetterHands = pCalculator.ratioOfBetterHands();
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+
+        if (possibleActions.canICheck()) {
+            //Maybe raise to see what the others will do
+            if (ratioOfBetterHands / 2 < Math.random() && possibleActions.canIRaise()) {
+                return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+            } else {
+                return new Action(ActionType.CHECK, 0);
+            }
+        }
+        //Can only all in
+        if (!possibleActions.canICall() && possibleActions.canIGoAllIn()) {
+            if (goAllInPostFlop()) {
+                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
+            } else {
+                return fold();
+            }
+        }
+        if (possibleActions.canICall()) {
+            log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" + playState.getMyCurrentChipAmount());
+
+                //p(hand)>0,2*(bet/stack)^(1/4)
+                if (1-pCalculator.ratioOfBetterHands() > 0.2 *
+                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
+                    if (Math.random() > 0.80 && possibleActions.canIRaise()) {
+                        return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+                    } else {
+                        return new Action(ActionType.CALL, possibleActions.getCallAmount());
+                    }
+                } else {
+                    return fold();
+                }
+
+        }
+        //Failsafe
+        return fold();
+
+    }
+
+    private boolean goAllInPostFlop() {
         //TODO Implement
+        return false;
+    }
+
+    private Action riverAction(PossibleActions possibleActions) {
+        //TODO Check these calculations
+        log.debug("Commencing river calculations");
+        double ratioOfBetterHands = pCalculator.ratioOfBetterHands();
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+
+        if (possibleActions.canIRaise() && ratioOfBetterHands < 0.1 && playState.getMyInvestmentInPot() / playState.getBigBlind() < 3) {
+            return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+        }
+        if (possibleActions.canICheck()) {
+            return new Action(ActionType.CHECK, 0);
+        }
+
+        //Can i only all in
+        if (possibleActions.canIGoAllIn() && !possibleActions.canICall()) {
+
+            if (ratioOfBetterHands < 0.3 * playState.getBigBlind() / playState.getMyCurrentChipAmount()) {
+                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
+            } else {
+                return fold();
+            }
+        }
+        if (possibleActions.canICall()) {
+            if (playState.getMyInvestmentInPot() / playState.getBigBlind() > (1 - ratioOfBetterHands) * 5 ||
+                    possibleActions.getCallAmount() / playState.getMyCurrentChipAmount() > ratioOfBetterHands) {
+                return new Action(ActionType.CALL, possibleActions.getCallAmount());
+            }
+        }
+
+        return fold();
+
+    }
+
+    private Action turnAction(PossibleActions possibleActions) {
+        //TODO Check these calculations
+        log.debug("Commencing turn calculations");
+        double ratioOfBetterHands = pCalculator.ratioOfBetterHands();
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
+
+        if (possibleActions.canIRaise() && ratioOfBetterHands < 0.1 && playState.getMyInvestmentInPot() / playState.getBigBlind() < 3) {
+            return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+        }
+        if (possibleActions.canICheck()) {
+            return new Action(ActionType.CHECK, 0);
+        }
+
+        //Can i only all in
+        if (possibleActions.canIGoAllIn() && !possibleActions.canICall()) {
+
+            if (ratioOfBetterHands < 0.3 * playState.getBigBlind() / playState.getMyCurrentChipAmount()) {
+                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
+            } else {
+                return fold();
+            }
+        }
+        if (possibleActions.canICall()) {
+            if (playState.getMyInvestmentInPot() / playState.getBigBlind() > (1 - ratioOfBetterHands) * 5 ||
+                    possibleActions.getCallAmount() / playState.getMyCurrentChipAmount() > ratioOfBetterHands) {
+                return new Action(ActionType.CALL, possibleActions.getCallAmount());
+            }
+        }
+
+        return fold();
+
+    }
+
+    private Action flopAction(PossibleActions possibleActions) {
+        //TODO Check these calculations
         log.debug("Commencing flop calculations");
         double ratioOfBetterHands = pCalculator.ratioOfBetterHands();
+        CurrentPlayState playState = playerClient.getCurrentPlayState();
 
+        if (possibleActions.canIRaise() && ratioOfBetterHands < 0.1 && playState.getMyInvestmentInPot() / playState.getBigBlind() < 3) {
+            return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
+        }
+        if (possibleActions.canICheck()) {
+            return new Action(ActionType.CHECK, 0);
+        }
 
+        //Can i only all in
+        if (possibleActions.canIGoAllIn() && !possibleActions.canICall()) {
 
-        return null;
+            if (ratioOfBetterHands < 0.3 * playState.getBigBlind() / playState.getMyCurrentChipAmount()) {
+                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
+            } else {
+                return fold();
+            }
+        }
+        if (possibleActions.canICall()) {
+            if (playState.getMyInvestmentInPot() / playState.getBigBlind() > (1 - ratioOfBetterHands) * 5 ||
+                    possibleActions.getCallAmount() / playState.getMyCurrentChipAmount() > ratioOfBetterHands) {
+                return new Action(ActionType.CALL, possibleActions.getCallAmount());
+            }
+        }
+
+        return fold();
     }
 
     private Action preFlopAction(ActionRequest request, PossibleActions possibleActions) {
-        log.debug("I am now doing preFlopCalculations");
-
         CurrentPlayState playState = playerClient.getCurrentPlayState();
 
         if (possibleActions.canICheck()) {
@@ -297,7 +431,6 @@ public class PokerPlayer implements Player {
         }
         //Failsafe
         return fold();
-
     }
 
     private Action fold() {
