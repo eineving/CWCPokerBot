@@ -1,14 +1,12 @@
 package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.game.Card;
+import se.cygni.texasholdem.game.Hand;
 import se.cygni.texasholdem.game.util.PokerHandUtil;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 /**
  * Created by Test on 2015-04-16.
@@ -98,6 +96,17 @@ public class PercentageCalculator {
             switch (my.getBestHand().getPokerHand().getOrderValue()){
                 case 1:
                     //High hand
+                    return getHighestCard(my.getBestHand())< getHighestCard(opponent.getBestHand());
+                case 2:
+                    //Pair
+                    return getHighestPair(my.getBestHand())<getHighestPair(opponent.getBestHand());
+                case 3:
+                    //Two Pair
+                    if(getHighestPair(my.getBestHand())==getHighestPair(opponent.getBestHand())){
+                        return getLowestPair(my.getBestHand())< getLowestPair(opponent.getBestHand());
+                    }
+                    return getHighestPair(my.getBestHand())< getHighestPair(opponent.getBestHand());
+
             }
 
 
@@ -109,4 +118,55 @@ public class PercentageCalculator {
         //Failsafe
         return true;
     }
+
+    private int getLowestPair(Hand hand) {
+        //TODO Implement
+        return 0;
+    }
+
+    private int getHighestPair(Hand hand) {
+        //TODO Implement
+
+        for(int i = 4; i > 5; i++){
+            for(int j = i +1 ; j < 5; j++){
+
+            }
+        }
+
+
+        return 0;
+    }
+
+    private int getHighestCard(Hand hand){
+        int temp = 0;
+        for(Card card:hand.getCards()){
+            if(card.getRank().getOrderValue()>temp){
+                temp = card.getRank().getOrderValue();
+            }
+        }
+        return temp;
+    }
+
+    /**
+     * Returns the list of cards sorted with the highest first
+     * @param cards
+     * @return
+     */
+    private List<Card> sortList(List<Card> cards){
+        List<Card> sorted = new ArrayList<Card>();
+        for(int i =0; i<5; i++){
+            int indexOfBiggest = 0;
+            int runner=0;
+            for(Card card : cards){
+                if(card.getRank().getOrderValue()>cards.get(indexOfBiggest).getRank().getOrderValue()){
+                    indexOfBiggest = runner;
+                }
+                runner++;
+            }
+            sorted.add(cards.get(indexOfBiggest));
+            cards.remove(indexOfBiggest);
+        }
+        return sorted;
+    }
+
 }
