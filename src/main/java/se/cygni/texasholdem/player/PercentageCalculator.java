@@ -8,9 +8,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
 
-/**
- * Created by Test on 2015-04-16.
- */
 public class PercentageCalculator {
 
 
@@ -100,14 +97,19 @@ public class PercentageCalculator {
                     return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
                 case 2:
                     //Pair
+                    //TODO same pair?
                     return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
                 case 3:
                     //Two Pair
+                    //TODO same two pair?
                     if (getHighestPair(my.getBestHand()) == getHighestPair(opponent.getBestHand())) {
                         return getLowestPair(my.getBestHand()) < getLowestPair(opponent.getBestHand());
                     }
                     return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
                 case 4:
+                    //Three of a kind
+                    return getThreeOfAKindValue(my.getBestHand())<getThreeOfAKindValue(opponent.getBestHand());
+
                     //TODO Implement
             }
 
@@ -120,6 +122,28 @@ public class PercentageCalculator {
         return true;
     }
 
+    private int getThreeOfAKindValue(Hand hand) {
+        List<Card> sortedHand = sortHand(hand.getCards());
+        for (int i = 0; i < 3; i++) {
+            if (sortedHand.get(i).getRank().getOrderValue() == sortedHand.get(i + 1).getRank().getOrderValue() &&
+                    sortedHand.get(i).getRank().getOrderValue() == sortedHand.get(i + 2).getRank().getOrderValue()) {
+                //check if there is three of a kind
+                if (i < 2 && sortedHand.get(i).getRank().getOrderValue() != sortedHand.get(i + 3).getRank().getOrderValue()) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                } else if (i == 2) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                }
+            }
+        }
+        //Failsafe
+        return 0;
+    }
+
+    /**
+     * Returns the lowest pair in the hand and 0 if no pair is found. Three of a kind returns 0.
+     * @param hand a five-card hand
+     * @return rank of the lowest pair
+     */
     private int getLowestPair(Hand hand) {
         List<Card> sortedHand = sortHand(hand.getCards());
         for (int i = 4; i > 0; i--) {
@@ -136,6 +160,11 @@ public class PercentageCalculator {
         return 0;
     }
 
+    /**
+     * Returns the highest pair in the hand and 0 if no pair is found. Three of a kind returns 0.
+     * @param hand a five-card hand
+     * @return rank of the highest pair
+     */
     private int getHighestPair(Hand hand) {
         List<Card> sortedHand = sortHand(hand.getCards());
         for (int i = 0; i < 4; i++) {
@@ -165,8 +194,8 @@ public class PercentageCalculator {
     /**
      * Returns the list of cards sorted with the highest first
      *
-     * @param cards
-     * @return
+     * @param cards a five card hand
+     * @return a new list sorted with the card with the highest rank first
      */
     private List<Card> sortHand(List<Card> cards) {
         List<Card> sorted = new ArrayList<Card>();
