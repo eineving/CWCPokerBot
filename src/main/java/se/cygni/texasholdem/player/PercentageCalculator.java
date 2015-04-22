@@ -79,8 +79,19 @@ public class PercentageCalculator {
     }
 
     public double ratioOfBetterHands() {
-        //TODO Implement
-        return 1;
+        List<List<Card>> possibleTuples = deck.getPossibleTuples();
+
+        int numberOfbetterHands=0;
+        double numberOfHands = possibleTuples.size();
+
+        for(List<Card> hand : possibleTuples){
+            if(betterThanMyHand(hand)){
+                numberOfbetterHands++;
+                System.out.println(numberOfbetterHands + " better hand found");
+            }
+        }
+
+        return numberOfbetterHands/numberOfHands;
     }
 
     private boolean betterThanMyHand(List<Card> possibleHand) {
@@ -89,7 +100,7 @@ public class PercentageCalculator {
 
         //If the hands have the same typ and needs to be decided by value of most significant card/cards in the hand
         if (my.getBestHand().getPokerHand().getOrderValue() == opponent.getBestHand().getPokerHand().getOrderValue()) {
-
+            System.out.print("Values are the same");
             //TODO Refactor
             switch (my.getBestHand().getPokerHand().getOrderValue()) {
                 case 1:
@@ -134,7 +145,7 @@ public class PercentageCalculator {
                 case 9:
                     //Straight flush
                     return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
-                
+
                 case 10:
                     //Royal flush
                     return false;
@@ -147,6 +158,7 @@ public class PercentageCalculator {
 
         //Failsafe
         return true;
+
     }
 
     private int getFourOfAKindValue(Hand hand) {

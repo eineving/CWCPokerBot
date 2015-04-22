@@ -238,6 +238,11 @@ public class PokerPlayer implements Player {
 
     private Action flopAction(ActionRequest request, PossibleActions possibleActions) {
         //TODO Implement
+        log.debug("Commencing flop calculations");
+        double ratioOfBetterHands = pCalculator.ratioOfBetterHands();
+
+
+
         return null;
     }
 
