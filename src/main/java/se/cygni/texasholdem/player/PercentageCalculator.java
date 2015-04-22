@@ -28,12 +28,12 @@ public class PercentageCalculator {
 
         while (scannerHeadsUp.hasNext()) {
             String[] columns = scannerHeadsUp.nextLine().split("\t");
-            preFlopHeadsUp.put(columns[0], Double.valueOf(columns[1])/100);
+            preFlopHeadsUp.put(columns[0], Double.valueOf(columns[1]) / 100);
         }
 
         while (scannerMulti.hasNext()) {
             String[] columns = scannerMulti.nextLine().split("\t");
-            preFlopMulti.put(columns[0], Double.valueOf(columns[1])/100);
+            preFlopMulti.put(columns[0], Double.valueOf(columns[1]) / 100);
         }
     }
 
@@ -43,7 +43,7 @@ public class PercentageCalculator {
         deck.fillDeck();
 
         //Removing my cards from the calculation deck
-        for(Card card: privateCards){
+        for (Card card : privateCards) {
             deck.removeCard(card);
         }
 
@@ -64,10 +64,11 @@ public class PercentageCalculator {
 
     /**
      * Returns the precentage of winning with a given privateCards and given amount of players.
+     *
      * @param nbrOfPlayers players still having a privateCards
      * @return percentage of winning if all players would not fold
      */
-    public double getPreFlopPercentage(int nbrOfPlayers){
+    public double getPreFlopPercentage(int nbrOfPlayers) {
         if (nbrOfPlayers > 2) {
             return preFlopMulti.get(preFlopMapSearcher);
         } else {
@@ -75,40 +76,40 @@ public class PercentageCalculator {
         }
     }
 
-    public void newCommunityCard(Card card){
+    public void newCommunityCard(Card card) {
         communityCards.add(card);
         deck.removeCard(card);
     }
 
-    public double ratioOfBetterHands(){
+    public double ratioOfBetterHands() {
         //TODO Implement
         return 1;
     }
 
-    private boolean betterThanMyHand(List<Card> possibleHand){
+    private boolean betterThanMyHand(List<Card> possibleHand) {
         PokerHandUtil my = new PokerHandUtil(communityCards, privateCards);
         PokerHandUtil opponent = new PokerHandUtil(communityCards, possibleHand);
 
         //If the hands have the same typ and needs to be decided by value of most significant card/cards in the hand
-        if(my.getBestHand().getPokerHand().getOrderValue() == opponent.getBestHand().getPokerHand().getOrderValue()){
+        if (my.getBestHand().getPokerHand().getOrderValue() == opponent.getBestHand().getPokerHand().getOrderValue()) {
 
             //TODO Refactor
-            switch (my.getBestHand().getPokerHand().getOrderValue()){
+            switch (my.getBestHand().getPokerHand().getOrderValue()) {
                 case 1:
                     //High hand
-                    return getHighestCard(my.getBestHand())< getHighestCard(opponent.getBestHand());
+                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
                 case 2:
                     //Pair
-                    return getHighestPair(my.getBestHand())<getHighestPair(opponent.getBestHand());
+                    return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
                 case 3:
                     //Two Pair
-                    if(getHighestPair(my.getBestHand())==getHighestPair(opponent.getBestHand())){
-                        return getLowestPair(my.getBestHand())< getLowestPair(opponent.getBestHand());
+                    if (getHighestPair(my.getBestHand()) == getHighestPair(opponent.getBestHand())) {
+                        return getLowestPair(my.getBestHand()) < getLowestPair(opponent.getBestHand());
                     }
-                    return getHighestPair(my.getBestHand())< getHighestPair(opponent.getBestHand());
-
+                    return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
+                case 4:
+                    //TODO Implement
             }
-
 
 
         } else {
@@ -120,27 +121,41 @@ public class PercentageCalculator {
     }
 
     private int getLowestPair(Hand hand) {
-        //TODO Implement
+        List<Card> sortedHand = sortHand(hand.getCards());
+        for (int i = 4; i > 0; i--) {
+            if (sortedHand.get(i).getRank().getOrderValue() == sortedHand.get(i - 1).getRank().getOrderValue()) {
+                //check if there is three of a kind
+                if (i > 1 && sortedHand.get(i).getRank().getOrderValue() != sortedHand.get(i - 2).getRank().getOrderValue()) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                } else if (i == 1) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                }
+            }
+        }
+        //Failsafe
         return 0;
     }
 
     private int getHighestPair(Hand hand) {
-        //TODO Implement
-
-        for(int i = 4; i > 5; i++){
-            for(int j = i +1 ; j < 5; j++){
-
+        List<Card> sortedHand = sortHand(hand.getCards());
+        for (int i = 0; i < 4; i++) {
+            if (sortedHand.get(i).getRank().getOrderValue() == sortedHand.get(i + 1).getRank().getOrderValue()) {
+                //check if there is three of a kind
+                if (i < 3 && sortedHand.get(i).getRank().getOrderValue() != sortedHand.get(i + 2).getRank().getOrderValue()) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                } else if (i == 3) {
+                    return sortedHand.get(i).getRank().getOrderValue();
+                }
             }
         }
-
-
+        //Failsafe
         return 0;
     }
 
-    private int getHighestCard(Hand hand){
+    private int getHighestCard(Hand hand) {
         int temp = 0;
-        for(Card card:hand.getCards()){
-            if(card.getRank().getOrderValue()>temp){
+        for (Card card : hand.getCards()) {
+            if (card.getRank().getOrderValue() > temp) {
                 temp = card.getRank().getOrderValue();
             }
         }
@@ -149,16 +164,17 @@ public class PercentageCalculator {
 
     /**
      * Returns the list of cards sorted with the highest first
+     *
      * @param cards
      * @return
      */
-    private List<Card> sortList(List<Card> cards){
+    private List<Card> sortHand(List<Card> cards) {
         List<Card> sorted = new ArrayList<Card>();
-        for(int i =0; i<5; i++){
+        for (int i = 0; i < 5; i++) {
             int indexOfBiggest = 0;
-            int runner=0;
-            for(Card card : cards){
-                if(card.getRank().getOrderValue()>cards.get(indexOfBiggest).getRank().getOrderValue()){
+            int runner = 0;
+            for (Card card : cards) {
+                if (card.getRank().getOrderValue() > cards.get(indexOfBiggest).getRank().getOrderValue()) {
                     indexOfBiggest = runner;
                 }
                 runner++;
