@@ -63,7 +63,7 @@ public class PokerPlayer implements Player {
     /**
      * The main method to start your bot.
      *
-     * @param args
+     * @param args strings
      */
     public static void main(String... args) {
         try {
@@ -125,8 +125,8 @@ public class PokerPlayer implements Player {
      * Note! This is just an example, you need to add your own smartness
      * to win.
      *
-     * @param request
-     * @return
+     * @param request what actions can be done
+     * @return the action to do
      */
     private Action getBestAction(ActionRequest request) {
 

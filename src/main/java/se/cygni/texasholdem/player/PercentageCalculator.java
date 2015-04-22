@@ -108,9 +108,36 @@ public class PercentageCalculator {
                     return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
                 case 4:
                     //Three of a kind
-                    return getThreeOfAKindValue(my.getBestHand())<getThreeOfAKindValue(opponent.getBestHand());
+                    return getThreeOfAKindValue(my.getBestHand()) < getThreeOfAKindValue(opponent.getBestHand());
+                case 5:
+                    //Straight
+                    //if both have the same straight the highest card counts unless ace is a one
+                    //TODO implement if ace is at bottom
+                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
 
-                    //TODO Implement
+                case 6:
+                    //Flush
+                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+
+                case 7:
+                    //Full house
+                    if (getThreeOfAKindValue(my.getBestHand()) == getThreeOfAKindValue(opponent.getBestHand())) {
+                        return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
+                    }
+                    return getThreeOfAKindValue(my.getBestHand()) < getThreeOfAKindValue(opponent.getBestHand());
+
+                case 8:
+                    //Four of a kind
+                    //TODO Implement that both players could have the same four of a kind
+                    return getFourOfAKindValue(my.getBestHand()) < getFourOfAKindValue(opponent.getBestHand());
+
+                case 9:
+                    //Straight flush
+                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+                
+                case 10:
+                    //Royal flush
+                    return false;
             }
 
 
@@ -120,6 +147,11 @@ public class PercentageCalculator {
 
         //Failsafe
         return true;
+    }
+
+    private int getFourOfAKindValue(Hand hand) {
+        List<Card> sortedHand = sortHand(hand.getCards());
+        return sortedHand.get(1).getRank().getOrderValue();
     }
 
     private int getThreeOfAKindValue(Hand hand) {
@@ -141,6 +173,7 @@ public class PercentageCalculator {
 
     /**
      * Returns the lowest pair in the hand and 0 if no pair is found. Three of a kind returns 0.
+     *
      * @param hand a five-card hand
      * @return rank of the lowest pair
      */
@@ -162,6 +195,7 @@ public class PercentageCalculator {
 
     /**
      * Returns the highest pair in the hand and 0 if no pair is found. Three of a kind returns 0.
+     *
      * @param hand a five-card hand
      * @return rank of the highest pair
      */
