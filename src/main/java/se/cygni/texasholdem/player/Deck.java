@@ -47,6 +47,7 @@ public class Deck {
     }
 
     public List<List<Card>> getPossibleTuples() {
+        System.out.println("Deck size: " + getDeckSize());
         List<List<Card>> tuples = new ArrayList<List<Card>>();
         for (int i = 0; i < cards.size(); i++) {
             for (int j = i+1; j < cards.size(); j++) {

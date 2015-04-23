@@ -103,46 +103,46 @@ public class PercentageCalculator {
             switch (my.getBestHand().getPokerHand().getOrderValue()) {
                 case 1:
                     //High hand
-                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+                    return getHighestCard(my.getBestHand()) <= getHighestCard(opponent.getBestHand());
                 case 2:
                     //Pair
                     //TODO same pair?
-                    return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
+                    return getHighestPair(my.getBestHand()) <= getHighestPair(opponent.getBestHand());
                 case 3:
                     //Two Pair
                     //TODO same two pair?
                     if (getHighestPair(my.getBestHand()) == getHighestPair(opponent.getBestHand())) {
-                        return getLowestPair(my.getBestHand()) < getLowestPair(opponent.getBestHand());
+                        return getLowestPair(my.getBestHand()) <= getLowestPair(opponent.getBestHand());
                     }
-                    return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
+                    return getHighestPair(my.getBestHand()) <= getHighestPair(opponent.getBestHand());
                 case 4:
                     //Three of a kind
-                    return getThreeOfAKindValue(my.getBestHand()) < getThreeOfAKindValue(opponent.getBestHand());
+                    return getThreeOfAKindValue(my.getBestHand()) <= getThreeOfAKindValue(opponent.getBestHand());
                 case 5:
                     //Straight
                     //if both have the same straight the highest card counts unless ace is a one
                     //TODO implement if ace is at bottom
-                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+                    return getHighestCard(my.getBestHand()) <= getHighestCard(opponent.getBestHand());
 
                 case 6:
                     //Flush
-                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+                    return getHighestCard(my.getBestHand()) <= getHighestCard(opponent.getBestHand());
 
                 case 7:
                     //Full house
                     if (getThreeOfAKindValue(my.getBestHand()) == getThreeOfAKindValue(opponent.getBestHand())) {
-                        return getHighestPair(my.getBestHand()) < getHighestPair(opponent.getBestHand());
+                        return getHighestPair(my.getBestHand()) <= getHighestPair(opponent.getBestHand());
                     }
-                    return getThreeOfAKindValue(my.getBestHand()) < getThreeOfAKindValue(opponent.getBestHand());
+                    return getThreeOfAKindValue(my.getBestHand()) <= getThreeOfAKindValue(opponent.getBestHand());
 
                 case 8:
                     //Four of a kind
                     //TODO Implement that both players could have the same four of a kind
-                    return getFourOfAKindValue(my.getBestHand()) < getFourOfAKindValue(opponent.getBestHand());
+                    return getFourOfAKindValue(my.getBestHand()) <= getFourOfAKindValue(opponent.getBestHand());
 
                 case 9:
                     //Straight flush
-                    return getHighestCard(my.getBestHand()) < getHighestCard(opponent.getBestHand());
+                    return getHighestCard(my.getBestHand()) <= getHighestCard(opponent.getBestHand());
 
                 case 10:
                     //Royal flush

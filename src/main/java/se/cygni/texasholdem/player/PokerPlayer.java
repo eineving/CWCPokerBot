@@ -142,15 +142,15 @@ public class PokerPlayer implements Player {
 
         } else if (playState.getCommunityCards().size() == 3) {
             //Flop
-            //return postFlopAction(possibleActions);
+            return postFlopAction(possibleActions);
 
         } else if (playState.getCommunityCards().size() == 4) {
             //Turn
-            //return postFlopAction(possibleActions);
+            return postFlopAction(possibleActions);
 
         } else if (playState.getCommunityCards().size() == 5) {
             //River
-            //return postFlopAction(possibleActions);
+            return postFlopAction(possibleActions);
 
         } else {
 
@@ -254,25 +254,14 @@ public class PokerPlayer implements Player {
             }
         }
         //Can only all in
-        if (!possibleActions.canICall() && possibleActions.canIGoAllIn()) {
-            if (goAllInPostFlop(ratioOfBetterHands)) {
-                return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
-            } else {
-                return fold();
-            }
+        if (playState.getMyCurrentChipAmount()<playState.getBigBlind() && possibleActions.canIGoAllIn()) {
+            return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
         }
         if (possibleActions.canICall()) {
             log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" + playState.getMyCurrentChipAmount());
 
-            //p(hand)>0,2*(bet/stack)^(1/4)
-            if (1 - pCalculator.ratioOfBetterHands() > 0.1 *
-                    Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8) &&
-                        isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)) {
-                if (Math.random() > 0.80 && possibleActions.canIRaise()) {
-                    return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
-                } else {
-                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
-                }
+            if (ratioOfBetterHands<0.2 || isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)){
+                return new Action(ActionType.CALL, possibleActions.getCallAmount());
             } else {
                 return fold();
             }
@@ -280,7 +269,6 @@ public class PokerPlayer implements Player {
         }
         //Failsafe
         return fold();
-
     }
 
     private boolean goAllInPostFlop(double ratioOfBetterHands) {
