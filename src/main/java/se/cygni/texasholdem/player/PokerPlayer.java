@@ -40,6 +40,8 @@ public class PokerPlayer implements Player {
     private final PlayerClient playerClient;
     private PercentageCalculator pCalculator;
 
+    private long chipInAtThisState = 0;
+
     /**
      * Default constructor for a Java Poker Bot.
      *
@@ -86,7 +88,7 @@ public class PokerPlayer implements Player {
      */
     @Override
     public String getName() {
-        return "DanielEineving";
+        return "TesterDE";
     }
 
     /**
@@ -140,28 +142,11 @@ public class PokerPlayer implements Player {
         if (playState.getCommunityCards().isEmpty()) {
             return preFlopAction(possibleActions);
 
-        } else if (playState.getCommunityCards().size() == 3) {
-            //Flop
-            return postFlopAction(possibleActions);
-
-        } else if (playState.getCommunityCards().size() == 4) {
-            //Turn
-            return postFlopAction(possibleActions);
-
-        } else if (playState.getCommunityCards().size() == 5) {
+        }
+        /*else if (playState.getCommunityCards().size() == 5) {
             //River
             return postFlopAction(possibleActions);
-
-        } else {
-
-            //failsafe
-            log.debug("Not right amount of community cards");
-            //return new Action(ActionType.FOLD, 0);
-        }
-
-
-
-
+        }*/
 
 
         Action callAction = null;
@@ -200,8 +185,8 @@ public class PokerPlayer implements Player {
         Hand myBestHand = pokerHandUtil.getBestHand();
         PokerHand myBestPokerHand = myBestHand.getPokerHand();
 
-        // Let's go ALL IN if hand is better than or equal to THREE_OF_A_KIND
-        if (allInAction != null && isHandBetterThan(myBestPokerHand, PokerHand.TWO_PAIRS)) {
+        // Let's go ALL IN if hand is better than THREE_OF_A_KIND
+        if (allInAction != null && isHandBetterThan(myBestPokerHand, PokerHand.THREE_OF_A_KIND)) {
             return allInAction;
         }
 
@@ -215,7 +200,9 @@ public class PokerPlayer implements Player {
         long raiseAmount = raiseAction == null ? -1 : raiseAction.getAmount();
 
         // Only call if ONE_PAIR or better
-        if (isHandBetterThan(myBestPokerHand, PokerHand.ONE_PAIR) && callAction != null) {
+        if (isHandBetterThan(myBestPokerHand, PokerHand.ONE_PAIR) ||
+                playState.getMyCards().get(0).getRank().getOrderValue()== playState.getMyCards().get(1).getRank().getOrderValue()
+                && callAction != null) {
             return callAction;
         }
 
@@ -247,20 +234,26 @@ public class PokerPlayer implements Player {
 
         if (possibleActions.canICheck()) {
             //Maybe raise to see what the others will do
-            if (ratioOfBetterHands / 2 < Math.random() && possibleActions.canIRaise() && isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)) {
+            if (Math.sqrt(ratioOfBetterHands) < Math.random() && possibleActions.canIRaise() && isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)) {
+                chipInAtThisState+= possibleActions.getRaiseAmount();
                 return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
             } else {
                 return new Action(ActionType.CHECK, 0);
             }
         }
         //Can only all in
-        if (playState.getMyCurrentChipAmount()<playState.getBigBlind() && possibleActions.canIGoAllIn()) {
+        if (playState.getMyCurrentChipAmount() < playState.getBigBlind() && possibleActions.canIGoAllIn()) {
             return new Action(ActionType.ALL_IN, possibleActions.getAllInAmount());
         }
         if (possibleActions.canICall()) {
             log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" + playState.getMyCurrentChipAmount());
 
-            if (ratioOfBetterHands<0.2 || isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)){
+            if ((ratioOfBetterHands < 0.5*(playState.getNumberOfPlayers()-playState.getNumberOfFoldedPlayers()) || isHandBetterThan(myBestPokerHand, PokerHand.HIGH_HAND)) &&
+                    ratioOfBetterHands<playState.getMyInvestmentInPot()/playState.getMyCurrentChipAmount()) {
+                chipInAtThisState+=possibleActions.getCallAmount();
+                return new Action(ActionType.CALL, possibleActions.getCallAmount());
+            } else if(chipInAtThisState < playState.getBigBlind() && ratioOfBetterHands<0.5){
+                chipInAtThisState+=possibleActions.getCallAmount();
                 return new Action(ActionType.CALL, possibleActions.getCallAmount());
             } else {
                 return fold();
@@ -298,31 +291,18 @@ public class PokerPlayer implements Player {
         }
         if (possibleActions.canICall()) {
             log.debug("CALL calculations: " + possibleActions.getCallAmount() + "/" + playState.getMyCurrentChipAmount());
-            if (playState.getNumberOfPlayers() > 2) {
 
-                //p(hand)>0,2*(bet/stack)^(1/4)
-                if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.2 *
-                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
-                    if (Math.random() > 0.80 && possibleActions.canIRaise()) {
-                        return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
-                    } else {
-                        return new Action(ActionType.CALL, possibleActions.getCallAmount());
-                    }
+            if (pCalculator.getPreFlopPercentage(2) > 0.55 *
+                    Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
+                if (pCalculator.getPreFlopPercentage(2)>0.75 && possibleActions.canIRaise()) {
+                    return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
                 } else {
-                    return fold();
+                    return new Action(ActionType.CALL, possibleActions.getCallAmount());
                 }
             } else {
-                if (pCalculator.getPreFlopPercentage(playState.getNumberOfPlayers()) > 0.6 *
-                        Math.pow(possibleActions.getCallAmount() / playState.getMyCurrentChipAmount(), 1 / 8)) {
-                    if (Math.random() > 0.75 && possibleActions.canIRaise()) {
-                        return new Action(ActionType.RAISE, possibleActions.getRaiseAmount());
-                    } else {
-                        return new Action(ActionType.CALL, possibleActions.getCallAmount());
-                    }
-                } else {
-                    return fold();
-                }
+                return fold();
             }
+
         }
         //Failsafe
         return fold();
@@ -337,10 +317,10 @@ public class PokerPlayer implements Player {
         //Is stack smaller than big blind?
 
         CurrentPlayState playState = playerClient.getCurrentPlayState();
-        if(playState.getBigBlind()>playState.getMyCurrentChipAmount()){
+        if (playState.getBigBlind() > playState.getMyCurrentChipAmount()) {
             return pCalculator.getPreFlopPercentage(2) > .50;
         } else {
-            return pCalculator.getPreFlopPercentage(2) > (1-playState.getBigBlind()/playState.getMyCurrentChipAmount());
+            return pCalculator.getPreFlopPercentage(2) > (1 - playState.getBigBlind() / playState.getMyCurrentChipAmount());
         }
     }
 
@@ -381,7 +361,7 @@ public class PokerPlayer implements Player {
 
     @Override
     public void onTableChangedStateEvent(TableChangedStateEvent event) {
-
+        chipInAtThisState=0;
         log.debug("Table changed state: {}", event.getState());
     }
 

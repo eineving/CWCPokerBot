@@ -89,7 +89,7 @@ public class PercentageCalculator {
                 numberOfBetterHands++;
             }
         }
-
+        System.out.println("RatioOfBetterHands:" + numberOfBetterHands/numberOfHands);
         return numberOfBetterHands/numberOfHands;
     }
 
